@@ -10,5 +10,5 @@ Node::Node(float size, float newx, float newy, float newz) :
 
 bool Node::operator<(Node b)
 {
-	return z < b.z;
+	return z > b.z;
 }

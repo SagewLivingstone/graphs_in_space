@@ -5,5 +5,5 @@ void PrintFullPath(char *);
 
 namespace M
 {
-	float FClamp(float, float, float);
+	float FClamp(float num, float min, float max);
 }
