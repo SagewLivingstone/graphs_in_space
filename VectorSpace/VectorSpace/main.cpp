@@ -63,6 +63,8 @@ int main()
 		//	testcircle.setRadius(testcircle.getRadius() + 1);
 		//}
 
+		world->HandleInput();
+
 		// Clear window before drawing
 		window.clear();
 		
