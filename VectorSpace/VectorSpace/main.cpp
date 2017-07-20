@@ -19,7 +19,7 @@ int main()
 	window.setVerticalSyncEnabled(true); // Use vsync because input delay doesn't really matter too much here
 	window.setKeyRepeatEnabled(false); // Don't handle multiple held key presses
 
-	// Give the world a window to draw to
+	// Give the world the window to draw to
 	world->SetWindow(&window);
 
 	// Make a test circle
@@ -56,24 +56,12 @@ int main()
 			if (event.type == sf::Event::Closed)
 				window.close();
 		}
-
-		// Real-time keyboard input
-		//if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
-		//{
-		//	testcircle.setRadius(testcircle.getRadius() + 1);
-		//}
-
-		world->HandleInput();
+		world->HandleInput(); // Process input before draw
 
 		// Clear window before drawing
 		window.clear();
-		
-		// Draw window
-		//window.draw(testcircle);
-		//window.draw(s_testimage);
 		world->Render();
-
-		// Render
+		// Display render
 		window.display();
 	}
 

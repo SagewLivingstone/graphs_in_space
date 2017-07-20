@@ -21,9 +21,9 @@ public:
 	void Render();
 
 private:
-	void loadImages();
+	void loadImages(); // Load images on init
 
-	void drawNode(Node);
+	void drawNode(Node&); // Draw an individual node
 	float depthToScaleFactor(const float& depth); // Convert depth to scale
 	sf::Vector3f applyCameraRotation(const Node& node); // Apply world camera rotation to location
 	sf::Vector2f toScreenSpace(const sf::Vector3f& node); // Convert depth and position to screen position offset
