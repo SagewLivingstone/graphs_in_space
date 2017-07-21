@@ -8,25 +8,27 @@ Object for a general volume of space, used for containing objects and rendering
 
 // Factors to calculate depth effect
 const float DEPTH_SCALE_FACTOR = 0.34f;
-const float DEPTH_OFFSET_FACTOR = 0.1f;
+const float DEPTH_OFFSET_FACTOR = 0.3f;
+
+const std::string NODE_IMAGE = "images\\object_ball.png";
 
 Space::Space()
 {
 	loadImages();
 
 	// For debugging purposes : test node
-	Node testnode = Node(12, 0, 0);
+	Node* testnode = new Node(12, 0, 0);
 	m_nodes.push_back(testnode);
 
 	// Debug : square of nodes
-	Node a = Node(8, 400, 400, 400);
-	Node b = Node(8, -400, 400, 400);
-	Node c = Node(8, 400, 400, -400);
-	Node d = Node(8, -400, 400, -400);
-	Node e = Node(8, 400, -400, 400);
-	Node f = Node(8, -400, -400, 400);
-	Node g = Node(8, 400, -400, -400);
-	Node h = Node(8, -400, -400, -400);
+	Node* a = new Node(8, 400, 400, 400);
+	Node* b = new Node(8, -400, 400, 400);
+	Node* c = new Node(8, 400, 400, -400);
+	Node* d = new Node(8, -400, 400, -400);
+	Node* e = new Node(8, 400, -400, 400);
+	Node* f = new Node(8, -400, -400, 400);
+	Node* g = new Node(8, 400, -400, -400);
+	Node* h = new Node(8, -400, -400, -400);
 	m_nodes.push_back(a);
 	m_nodes.push_back(b);
 	m_nodes.push_back(c);
@@ -35,6 +37,16 @@ Space::Space()
 	m_nodes.push_back(f);
 	m_nodes.push_back(g);
 	m_nodes.push_back(h);
+	Link* la = new Link(a, g);
+	Link* lb = new Link(b, d);
+	Link* lc = new Link(c, b);
+	Link* ld = new Link(f, e);
+	Link* le = new Link(h, b);
+	m_links.push_back(la);
+	m_links.push_back(lb);
+	m_links.push_back(lc);
+	m_links.push_back(ld);
+	m_links.push_back(le);
 }
 
 Space::~Space()
@@ -56,7 +68,7 @@ void Space::SetWindow(sf::RenderWindow* new_window)
 void Space::loadImages()
 {
 	// Load image for node object
-	if (!t_node.loadFromFile("images\\object_ball.png"))
+	if (!t_node.loadFromFile(NODE_IMAGE))
 		printf("Could not load node texture!");
 	t_node.setSmooth(true);
 
@@ -69,11 +81,11 @@ void Space::HandleInput()
 	// Debugging - movement controls
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
 	{
-		camera_rotation.x -= ONE_DEG;
+		camera_rotation.x += ONE_DEG;
 	}
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
 	{
-		camera_rotation.x += ONE_DEG;
+		camera_rotation.x -= ONE_DEG;
 	}
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
 	{
@@ -92,16 +104,16 @@ void Space::Render()
 
 	// Sort nodes by depth before rendering
 	std::sort(m_nodes.begin(), m_nodes.end());
-	for (auto a : m_nodes)
-	{
-		//std::cout << a.screen_pos.z << " ";
-	}
-	std::cout << std::endl;
 
 	// Render all nodes
-	for (Node &node : m_nodes)
+	for (Node* node : m_nodes)
 	{
-		drawNode(node);
+		drawNode(*node);
+	}
+	// Render all links
+	for (Link* link : m_links)
+	{
+		drawLink(*link);
 	}
 }
 
@@ -117,7 +129,9 @@ void Space::drawNode(Node& node)
 	tmp_sprite.setTexture(t_node);
 	tmp_sprite.setOrigin(sf::Vector2f(tex_center, tex_center)); // Set origin to center of texture
 	tmp_sprite.setScale(sf::Vector2f(scale, scale)); // Scale based on size and distance
-	tmp_sprite.setPosition(toScreenSpace(node.view_location)); //Convert pos to screen position
+	sf::Vector2f screen_position = toScreenSpace(node.view_location);
+	node.view_location = sf::Vector3f(screen_position.x, screen_position.y, node.view_location.z);
+	tmp_sprite.setPosition(screen_position); //Convert pos to screen position
 	
 	// [] TODO : Set color param
 
@@ -135,6 +149,27 @@ sf::Vector2f Space::toScreenSpace(const sf::Vector3f & position)
 	return sf::Vector2f(screen_x, screen_y);
 }
 
+void Space::drawLink(Link & link)
+{
+	if (!link.a || !link.b) return; // Don't draw if link is broken. TODO [handle broken link]
+
+	sf::Vector3f pos_a = link.a->view_location;
+	sf::Vector3f pos_b = link.b->view_location;
+	sf::Vector3f midpt = CalcMidpoint(pos_a, pos_b);
+
+	float distance = GetDistance(sf::Vector2f(pos_a.x, pos_a.y), sf::Vector2f(pos_b.x, pos_b.y)) - 50;
+	float angle = GetAngle(sf::Vector2f(pos_a.x, pos_a.y), sf::Vector2f(pos_b.x, pos_b.y));
+
+	sf::RectangleShape line(sf::Vector2f(link.thickness, distance));
+	line.setOrigin(sf::Vector2f(link.thickness / 2, distance / 2));
+	line.setFillColor(sf::Color(255, 255, 255, 100));
+	line.setRotation(angle);
+
+	line.setPosition(sf::Vector2f(midpt.x, midpt.y));
+
+	window->draw(line);
+}
+
 float Space::depthToScaleFactor(const float & depth)
 {
 	return (float) ((0.001 * depth * DEPTH_SCALE_FACTOR) + 1);
@@ -150,13 +185,16 @@ sf::Vector3f Space::applyCameraRotation(const Node & node)
 	Rx = camera_rotation.x;
 	Ry = camera_rotation.y;
 	Rz = camera_rotation.z;
-	float Nx, Ny, Nz; // New xyz coords
+	float Nx, Ny, Nz; // New xyz coords from Y axis rotation
+	float Mx, My, Mz; // New xyz coords from X axis rotation
 
 	Nx = (x * cos(Rx)) + (z * sin(Rx)); // Calc Y axis rotation for desired x rotation
 	Ny = y;
 	Nz = (-x * sin(Rx)) + (z * cos(Rx));
 
-	// TODO : Maybe handle X rotation later
+	Mx = Nx;                            // Calc X axis rotation for desired y rotation
+	My = (Ny * cos(Ry)) - (Nz * sin(Ry));
+	Mz = (Ny * sin(Ry)) + (Nz * cos(Ry));
 
-	return sf::Vector3f(Nx, Ny, Nz);
+	return sf::Vector3f(Mx, My, Mz);
 }

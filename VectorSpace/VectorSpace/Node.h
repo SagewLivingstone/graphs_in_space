@@ -8,6 +8,7 @@ class Node
 public:
 	Node(float size=DEFAULT_NODE_SIZE, float newx=0, float newy=0, float newz=0);
 
+	void Tick(float delta);
 	bool operator<(Node b);
 
 	sf::Color* m_color;
