@@ -24,7 +24,7 @@ private:
 	void loadImages(); // Load images on init
 
 	void UpdateTime();
-	void Process(); // Tell all nodes to update behaviour and such
+	void ProcessItems(); // Tell all nodes to update behaviour and such
 	void HandleInput();
 	void Render();
 	void UpdateFrameTimer();

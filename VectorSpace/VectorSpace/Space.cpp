@@ -31,10 +31,13 @@ Space::Space()
 	a->m_color = new sf::Color(0, 0, 255);
 	Node* b = new Node(8, -400, 400, 400);
 	Node* c = new Node(8, 400, 400, -400);
+	c->m_color = new sf::Color(0, 255, 0);
 	Node* d = new Node(8, -400, 400, -400);
 	Node* e = new Node(8, 400, -400, 400);
+	e->m_color = new sf::Color(255, 150, 0);
 	Node* f = new Node(8, -400, -400, 400);
 	Node* g = new Node(8, 400, -400, -400);
+	g->m_color = new sf::Color(255, 0, 255);
 	Node* h = new Node(8, -400, -400, -400);
 	m_nodes.push_back(a);
 	m_nodes.push_back(b);
@@ -44,16 +47,21 @@ Space::Space()
 	m_nodes.push_back(f);
 	m_nodes.push_back(g);
 	m_nodes.push_back(h);
+	// Debug : test links
+	Link* testlink = new Link(testnode, e);
 	Link* la = new Link(a, g);
 	Link* lb = new Link(b, d);
 	Link* lc = new Link(c, b);
 	Link* ld = new Link(f, e);
 	Link* le = new Link(h, b);
+	Link* lf = new Link(f, a);
+	m_links.push_back(testlink);
 	m_links.push_back(la);
 	m_links.push_back(lb);
 	m_links.push_back(lc);
 	m_links.push_back(ld);
 	m_links.push_back(le);
+	m_links.push_back(lf);
 }
 
 Space::~Space()
@@ -65,7 +73,7 @@ void Space::Tick() // Main tick function of space : called every update
 	UpdateTime();
 	Render();
 	HandleInput();
-	//Process();
+	ProcessItems();
 	if (SHOW_FRAME_COUNTER) UpdateFrameTimer();
 }
 
@@ -103,6 +111,14 @@ void Space::UpdateTime()
 	runtime = runtimeClock.getElapsedTime().asMilliseconds() / 1000.f;
 	deltatime = deltaClock.getElapsedTime().asMilliseconds() / 1000.f;
 	deltaClock.restart();
+}
+
+void Space::ProcessItems()
+{
+	for (Node* node : m_nodes)
+	{
+		node->Tick(deltatime);
+	}
 }
 
 void Space::HandleInput()
