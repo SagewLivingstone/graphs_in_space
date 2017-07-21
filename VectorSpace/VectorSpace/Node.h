@@ -9,7 +9,6 @@ public:
 	Node(float size=DEFAULT_NODE_SIZE, float newx=0, float newy=0, float newz=0);
 
 	void Tick(float delta);
-	bool operator<(Node b);
 
 	sf::Color* m_color;
 
@@ -17,3 +16,5 @@ public:
 	sf::Vector3f location; // Physical world location
 	sf::Vector3f view_location; // Position after rotated by camera
 };
+
+bool CompareNodes(Node * a, Node * b);

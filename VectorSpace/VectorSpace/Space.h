@@ -4,9 +4,9 @@
 
 struct WindowData
 {
-	int Width = 1280;
-	int Height = 720;
-	std::string Title = "Graphs in Space";
+	int Width = 2560;
+	int Height = 1440;
+	std::string Title = "Change resolution please";
 };
 
 class Space

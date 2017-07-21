@@ -8,7 +8,7 @@ Node::Node(float size, float newx, float newy, float newz) : m_size(size)
 	location = sf::Vector3f(newx, newy, newz);
 }
 
-bool Node::operator<(Node b)
+bool CompareNodes(Node* a, Node* b)
 {
-	return view_location.z < b.view_location.z;
+	return a->view_location.z < b->view_location.z;
 }

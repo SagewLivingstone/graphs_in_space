@@ -18,10 +18,12 @@ Space::Space()
 
 	// For debugging purposes : test node
 	Node* testnode = new Node(12, 0, 0);
+	testnode->m_color = new sf::Color(255, 0, 0);
 	m_nodes.push_back(testnode);
 
 	// Debug : square of nodes
 	Node* a = new Node(8, 400, 400, 400);
+	a->m_color = new sf::Color(0, 0, 255);
 	Node* b = new Node(8, -400, 400, 400);
 	Node* c = new Node(8, 400, 400, -400);
 	Node* d = new Node(8, -400, 400, -400);
@@ -103,7 +105,7 @@ void Space::Render()
 	if (m_nodes.empty()) return;
 
 	// Sort nodes by depth before rendering
-	std::sort(m_nodes.begin(), m_nodes.end());
+	std::sort(m_nodes.begin(), m_nodes.end(), CompareNodes);
 
 	// Render all nodes
 	for (Node* node : m_nodes)
@@ -132,8 +134,8 @@ void Space::drawNode(Node& node)
 	sf::Vector2f screen_position = toScreenSpace(node.view_location);
 	node.view_location = sf::Vector3f(screen_position.x, screen_position.y, node.view_location.z);
 	tmp_sprite.setPosition(screen_position); //Convert pos to screen position
-	
-	// [] TODO : Set color param
+
+	if (node.m_color) tmp_sprite.setColor(*node.m_color);
 
 	window->draw(tmp_sprite);
 }
