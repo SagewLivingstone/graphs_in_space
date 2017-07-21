@@ -56,11 +56,10 @@ int main()
 			if (event.type == sf::Event::Closed)
 				window.close();
 		}
-		world->HandleInput(); // Process input before draw
 
 		// Clear window before drawing
 		window.clear();
-		world->Render();
+		world->Tick();
 		// Display render
 		window.display();
 	}

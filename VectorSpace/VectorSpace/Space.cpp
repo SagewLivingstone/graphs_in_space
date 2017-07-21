@@ -10,10 +10,15 @@ Object for a general volume of space, used for containing objects and rendering
 const float DEPTH_SCALE_FACTOR = 0.34f;
 const float DEPTH_OFFSET_FACTOR = 0.3f;
 
+const float CAMERA_TURN_SPEED = 1.5f;
+
+const bool SHOW_FRAME_COUNTER = true;
+
 const std::string NODE_IMAGE = "images\\object_ball.png";
 
 Space::Space()
 {
+	initTime();
 	loadImages();
 
 	// For debugging purposes : test node
@@ -55,16 +60,20 @@ Space::~Space()
 {
 }
 
-void Space::SetWindow(sf::RenderWindow* new_window)
+void Space::Tick() // Main tick function of space : called every update
 {
-	window = new_window;
+	UpdateTime();
+	Render();
+	HandleInput();
+	//Process();
+	if (SHOW_FRAME_COUNTER) UpdateFrameTimer();
+}
 
-	// Set window specifications
-	sf::Vector2u window_size = window->getSize();
-	w_height = (float)window_size.y;
-	w_width = (float)window_size.x;
-	w_center_height = w_height / 2;
-	w_center_width = w_width / 2;
+void Space::initTime()
+{
+	runtimeClock.restart();
+	deltaClock.restart();
+	printf("Space: Time initialized\n");
 }
 
 void Space::loadImages()
@@ -77,25 +86,44 @@ void Space::loadImages()
 	t_node_size = (float)t_node.getSize().x;
 }
 
+void Space::SetWindow(sf::RenderWindow* new_window)
+{
+	window = new_window;
+
+	// Set window specifications
+	sf::Vector2u window_size = window->getSize();
+	w_height = (float)window_size.y;
+	w_width = (float)window_size.x;
+	w_center_height = w_height / 2;
+	w_center_width = w_width / 2;
+}
+
+void Space::UpdateTime()
+{
+	runtime = runtimeClock.getElapsedTime().asMilliseconds() / 1000.f;
+	deltatime = deltaClock.getElapsedTime().asMilliseconds() / 1000.f;
+	deltaClock.restart();
+}
+
 void Space::HandleInput()
 {
 	float speed = 4;
 	// Debugging - movement controls
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
 	{
-		camera_rotation.x += ONE_DEG;
+		camera_rotation.x += CAMERA_TURN_SPEED * deltatime;
 	}
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
 	{
-		camera_rotation.x -= ONE_DEG;
+		camera_rotation.x -= CAMERA_TURN_SPEED * deltatime;
 	}
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
 	{
-		camera_rotation.y += ONE_DEG;
+		camera_rotation.y += CAMERA_TURN_SPEED * deltatime;
 	}
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
 	{
-		camera_rotation.y -= ONE_DEG;
+		camera_rotation.y -= CAMERA_TURN_SPEED * deltatime;
 	}
 }
 
@@ -104,18 +132,28 @@ void Space::Render()
 {
 	if (m_nodes.empty()) return;
 
-	// Sort nodes by depth before rendering
-	std::sort(m_nodes.begin(), m_nodes.end(), CompareNodes);
+	std::sort(m_nodes.begin(), m_nodes.end(), CompareNodes); // Sort nodes by depth before rendering
 
-	// Render all nodes
-	for (Node* node : m_nodes)
+	for (Node* node : m_nodes) // Render all nodes
 	{
 		drawNode(*node);
 	}
-	// Render all links
-	for (Link* link : m_links)
+	for (Link* link : m_links) // Render all links
 	{
 		drawLink(*link);
+	}
+}
+
+void Space::UpdateFrameTimer()
+{
+	double currentTime = runtime;
+	deltaFrames++;
+	if (currentTime - lastTime >= 1.0) { // If last prinf() was more than 1 sec ago
+		float secondsPerFrame = 1000.0 / double(deltaFrames);
+		int framerate = (1 / secondsPerFrame) * 1000;
+		printf("%f ms/frame (%d FPS)\n", secondsPerFrame, framerate);
+		deltaFrames = 0;
+		lastTime += 1.0;
 	}
 }
 
