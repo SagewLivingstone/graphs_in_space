@@ -14,7 +14,7 @@ const float CAMERA_TURN_SPEED = 1.5f;
 
 const bool SHOW_FRAME_COUNTER = true;
 
-const std::string NODE_IMAGE = "images\\object_ball.png";
+const std::string NODE_IMAGE = "images\\node_item.png";
 
 Space::Space()
 {
