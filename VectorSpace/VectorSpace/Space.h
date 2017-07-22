@@ -30,6 +30,7 @@ private:
 	void Render();
 	void UpdateFrameTimer();
 
+	// Rendering
 	void drawNode(Node&); // Draw an individual node
 	float depthToScaleFactor(const float& depth); // Convert depth to scale
 	sf::Vector3f applyCameraRotation(const Node& node); // Apply world camera rotation to location
@@ -41,6 +42,13 @@ private:
 	std::vector<Link*> m_links;
 	sf::Vector3f camera_rotation = sf::Vector3f(0,0,0);
 	float zoom_factor = 1000;
+
+	// Modifiers
+	void CreateNode(); // Actually calculate a new node with parameters
+	void AddNode(Node* node); // Function to add a node
+	void AddChild(Node* parent, Node* child);
+	void SplitNode(Node* original, float force);
+	void AddLink(Link* link);
 	
 	// Time
 	sf::Clock runtimeClock;

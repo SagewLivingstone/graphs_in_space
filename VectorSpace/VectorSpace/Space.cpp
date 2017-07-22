@@ -22,10 +22,19 @@ Space::Space()
 	initTime();
 	loadImages();
 
+	Node* god = new Node(12, 0, 0);
+	god->m_color = new sf::Color(255, 0, 0);
+	AddNode(god);
+
+	if (true) return;
+
 	// For debugging purposes : test node
 	Node* testnode = new Node(12, 0, 0);
 	testnode->m_color = new sf::Color(255, 0, 0);
-	m_nodes.push_back(testnode);
+	AddNode(testnode);
+
+	Node* testchild = new Node(10, 200, 0);
+	AddChild(testnode, testchild);
 
 	// Debug : square of nodes
 	Node* a = new Node(8, 400, 400, 400);
@@ -128,6 +137,11 @@ void Space::ProcessItems()
 	for (Node* node : m_nodes)
 	{
 		node->Tick(deltatime);
+		if (node->lifetime > 5) SplitNode(node, 500);
+	}
+	for (Link* link : m_links)
+	{
+		link->Tick(deltatime);
 	}
 }
 
@@ -175,7 +189,7 @@ void Space::UpdateFrameTimer()
 	double currentTime = runtime;
 	deltaFrames++;
 	if (currentTime - lastTime >= 1.0) { // If last prinf() was more than 1 sec ago
-		float secondsPerFrame = 1000.0 / double(deltaFrames);
+		float secondsPerFrame = (float)(1000.0 / double(deltaFrames));
 		int framerate = (1 / secondsPerFrame) * 1000;
 		printf("%f ms/frame (%d FPS)\n", secondsPerFrame, framerate);
 		deltaFrames = 0;
@@ -238,6 +252,46 @@ void Space::drawLink(Link & link)
 	window->draw(line);
 }
 
+void Space::AddNode(Node * node)
+{
+	m_nodes.push_back(node);
+	// Other adding effects here
+}
+
+void Space::AddChild(Node * parent, Node * child)
+{
+	parent->AddChild(child);
+	m_nodes.push_back(child);
+}
+
+void Space::SplitNode(Node * original, float force)
+{
+	Node* newnode = new Node();
+	Link* link = new Link(original, newnode);
+	AddLink(link);
+	
+	original->lifetime = 0;
+
+	newnode->location = original->location;
+	float randx = rand() % 100;
+	float randy = rand() % 100;
+	float randz = rand() % 100;
+	printf("%f\n", randx);
+	newnode->location.x += randx;
+	newnode->location.y += randy;
+	newnode->location.z += randz;
+
+	original->m_size /= 2;
+	newnode->m_size = original->m_size;
+
+	AddNode(newnode);
+}
+
+void Space::AddLink(Link * link)
+{
+	m_links.push_back(link);
+}
+
 float Space::depthToScaleFactor(const float & depth)
 {
 	float res_scale = w_height / 720.f;
@@ -250,24 +304,5 @@ float Space::depthToScaleFactor(const float & depth)
 
 sf::Vector3f Space::applyCameraRotation(const Node & node)
 {
-	float x, y, z; // Original xyz coords
-	x = node.location.x;
-	y = node.location.y;
-	z = node.location.z;
-	float Rx, Ry, Rz; // Desired rotation
-	Rx = camera_rotation.x;
-	Ry = camera_rotation.y;
-	Rz = camera_rotation.z;
-	float Nx, Ny, Nz; // New xyz coords from Y axis rotation
-	float Mx, My, Mz; // New xyz coords from X axis rotation
-
-	Nx = (x * cos(Rx)) + (z * sin(Rx)); // Calc Y axis rotation for desired x rotation
-	Ny = y;
-	Nz = (-x * sin(Rx)) + (z * cos(Rx));
-
-	Mx = Nx;                            // Calc X axis rotation for desired y rotation
-	My = (Ny * cos(Ry)) - (Nz * sin(Ry));
-	Mz = (Ny * sin(Ry)) + (Nz * cos(Ry));
-
-	return sf::Vector3f(Mx, My, Mz);
+	return RotateAroundOrigin(node.location, camera_rotation);
 }
