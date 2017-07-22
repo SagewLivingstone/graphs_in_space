@@ -55,6 +55,9 @@ int main()
 			// Quit program : close window
 			if (event.type == sf::Event::Closed)
 				window.close();
+			// Handle mouse wheel scroll for zoom
+			if (event.type == sf::Event::MouseWheelScrolled)
+				world->Zoom(event.mouseWheelScroll.delta);
 		}
 
 		// Clear window before drawing

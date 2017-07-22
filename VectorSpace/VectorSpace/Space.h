@@ -16,6 +16,7 @@ public:
 	~Space();
 
 	void SetWindow(sf::RenderWindow* new_window);
+	void Zoom(int amount);
 
 	void Tick();
 
@@ -39,6 +40,7 @@ private:
 	std::vector<Node*> m_nodes;
 	std::vector<Link*> m_links;
 	sf::Vector3f camera_rotation = sf::Vector3f(0,0,0);
+	float zoom_factor = 1000;
 	
 	// Time
 	sf::Clock runtimeClock;

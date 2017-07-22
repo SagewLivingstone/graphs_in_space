@@ -30,7 +30,7 @@ void Node::CalcSway(float & delta)
 	location.z += cos(sway_offset.z * lifetime) * m_sway * delta;
 }
 
-bool CompareNodes(Node* a, Node* b)
+bool CompareNodesByDepth(Node* a, Node* b)
 {
 	return a->view_location.z < b->view_location.z;
 }

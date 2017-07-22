@@ -11,6 +11,7 @@ const float DEPTH_SCALE_FACTOR = 0.34f;
 const float DEPTH_OFFSET_FACTOR = 0.3f;
 
 const float CAMERA_TURN_SPEED = 1.5f;
+const float ZOOM_SPEED = 100.f;
 
 const bool SHOW_FRAME_COUNTER = true;
 
@@ -30,12 +31,15 @@ Space::Space()
 	Node* a = new Node(8, 400, 400, 400);
 	a->m_color = new sf::Color(0, 0, 255);
 	Node* b = new Node(8, -400, 400, 400);
+	b->m_color = new sf::Color(255, 255, 0);
 	Node* c = new Node(8, 400, 400, -400);
 	c->m_color = new sf::Color(0, 255, 0);
 	Node* d = new Node(8, -400, 400, -400);
+	d->m_color = new sf::Color(180, 0, 220);
 	Node* e = new Node(8, 400, -400, 400);
 	e->m_color = new sf::Color(255, 150, 0);
 	Node* f = new Node(8, -400, -400, 400);
+	f->m_color = new sf::Color(100, 100, 100);
 	Node* g = new Node(8, 400, -400, -400);
 	g->m_color = new sf::Color(255, 0, 255);
 	Node* h = new Node(8, -400, -400, -400);
@@ -106,6 +110,12 @@ void Space::SetWindow(sf::RenderWindow* new_window)
 	w_center_width = w_width / 2;
 }
 
+void Space::Zoom(int amount)
+{
+	float new_zoom = amount > 0 ? zoom_factor - ZOOM_SPEED : zoom_factor + ZOOM_SPEED;
+	zoom_factor = M::FClamp(new_zoom, 100, 10000);
+}
+
 void Space::UpdateTime()
 {
 	runtime = runtimeClock.getElapsedTime().asMilliseconds() / 1000.f;
@@ -135,11 +145,11 @@ void Space::HandleInput()
 	}
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
 	{
-		camera_rotation.y += CAMERA_TURN_SPEED * deltatime;
+		camera_rotation.y = M::FClamp(camera_rotation.y + (CAMERA_TURN_SPEED * deltatime), -1.5708f, 1.5708f); // Lock camera between -90 and 90 degrees
 	}
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
 	{
-		camera_rotation.y -= CAMERA_TURN_SPEED * deltatime;
+		camera_rotation.y = M::FClamp(camera_rotation.y - (CAMERA_TURN_SPEED * deltatime), -1.5708f, 1.5708f);
 	}
 }
 
@@ -148,7 +158,7 @@ void Space::Render()
 {
 	if (m_nodes.empty()) return;
 
-	std::sort(m_nodes.begin(), m_nodes.end(), CompareNodes); // Sort nodes by depth before rendering
+	std::sort(m_nodes.begin(), m_nodes.end(), CompareNodesByDepth); // Sort nodes by depth before rendering
 
 	for (Node* node : m_nodes) // Render all nodes
 	{
@@ -199,8 +209,8 @@ sf::Vector2f Space::toScreenSpace(const sf::Vector3f & position)
 	float depth_offset = ((0.001f * position.z * DEPTH_OFFSET_FACTOR) + 1);
 	depth_offset = M::FClamp(depth_offset, 0.f, 100000.f);
 
-	float screen_x = w_center_width + ((position.x / 1000) * w_center_height * depth_offset);
-	float screen_y = w_center_height + ((position.y / 1000) * -w_center_height * depth_offset);
+	float screen_x = w_center_width + ((position.x / zoom_factor) * w_center_height * depth_offset);
+	float screen_y = w_center_height + ((position.y / zoom_factor) * -w_center_height * depth_offset);
 
 	return sf::Vector2f(screen_x, screen_y);
 }
@@ -209,11 +219,13 @@ void Space::drawLink(Link & link)
 {
 	if (!link.a || !link.b) return; // Don't draw if link is broken. TODO [handle broken link]
 
+	float zoom_scale = 1000.f / zoom_factor;
+
 	sf::Vector3f pos_a = link.a->view_location;
 	sf::Vector3f pos_b = link.b->view_location;
 	sf::Vector3f midpt = CalcMidpoint(pos_a, pos_b);
 
-	float distance = GetDistance(sf::Vector2f(pos_a.x, pos_a.y), sf::Vector2f(pos_b.x, pos_b.y)) - 50;
+	float distance = M::FClamp(GetDistance(sf::Vector2f(pos_a.x, pos_a.y), sf::Vector2f(pos_b.x, pos_b.y)) - (70 * zoom_scale), 0, 100000);
 	float angle = GetAngle(sf::Vector2f(pos_a.x, pos_a.y), sf::Vector2f(pos_b.x, pos_b.y));
 
 	sf::RectangleShape line(sf::Vector2f(link.thickness, distance));
@@ -228,7 +240,12 @@ void Space::drawLink(Link & link)
 
 float Space::depthToScaleFactor(const float & depth)
 {
-	return (float) ((0.001 * depth * DEPTH_SCALE_FACTOR) + 1);
+	float res_scale = w_height / 720.f;
+	float zoom_scale = 1000.f / zoom_factor;
+	float factor = (float)((0.001 * depth * DEPTH_SCALE_FACTOR) + 1);
+	factor *= zoom_scale;
+	factor *= res_scale;
+	return factor;
 }
 
 sf::Vector3f Space::applyCameraRotation(const Node & node)

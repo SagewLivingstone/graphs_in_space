@@ -14,6 +14,10 @@ public:
 
 	float lifetime = 0;
 
+	// Tree Props
+	Node* parent;
+	std::vector<Node*> children;
+
 	sf::Color* m_color;
 	float m_sway;
 	sf::Vector3f sway_offset;
@@ -22,4 +26,4 @@ public:
 	sf::Vector3f view_location; // Position after rotated by camera
 };
 
-bool CompareNodes(Node * a, Node * b);
+bool CompareNodesByDepth(Node * a, Node * b);
