@@ -57,12 +57,23 @@ int main()
 				window.close();
 			// Handle mouse wheel scroll for zoom
 			if (event.type == sf::Event::MouseWheelScrolled)
-				world->Zoom(event.mouseWheelScroll.delta);
+				world->Zoom((int)event.mouseWheelScroll.delta);
+			// Handle mouse movement
+			if (event.type == sf::Event::MouseMoved)
+				world->EventMouseMoved(event.mouseMove.x, event.mouseMove.y);
+			// Handle mouse click
+			if (event.type == sf::Event::MouseButtonPressed)
+			{
+				if (event.mouseButton.button == sf::Mouse::Left)
+					world->EventLMB();
+				if (event.mouseButton.button == sf::Mouse::Right)
+					world->EventRMB();
+			}
 		}
 
 		// Clear window before drawing
 		window.clear();
-		world->Tick();
+		world->EventTick();
 		// Display render
 		window.display();
 	}

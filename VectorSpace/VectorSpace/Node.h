@@ -13,9 +13,12 @@ public:
 	void OrbitParent(float & delta);
 	void CalcSway(float & delta);
 
+	bool IsRoot(); // Is this node the root of a system?
+
 	void AddChild(Node* child);
 
 	float lifetime = 0;
+	bool bIsDead = false;
 
 	// Graph props
 
@@ -23,6 +26,7 @@ public:
 	Node* parent;
 	std::vector<Node*> children;
 	float orbit_speed = 5;
+	float orbit_distance = 200;
 
 	sf::Color* m_color;
 	float m_sway;

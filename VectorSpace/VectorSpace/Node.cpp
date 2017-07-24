@@ -21,7 +21,7 @@ void Node::Tick(float & delta)
 {
 	lifetime += delta;
 
-	if (parent) OrbitParent(delta);
+	if (!IsRoot()) OrbitParent(delta);
 
 	CalcSway(delta);
 }
@@ -29,6 +29,8 @@ void Node::Tick(float & delta)
 void Node::OrbitParent(float & delta) // Must have a parent!!!
 {
 	location = RotateAroundPoint(location, sf::Vector3f(orbit_speed * delta, 0, 0), parent->location);
+	if (GetDistance3(location, parent->location) < orbit_distance)
+		location = ScaleDifference(location, parent->location, 1.01);
 }
 
 void Node::CalcSway(float & delta)
@@ -36,6 +38,11 @@ void Node::CalcSway(float & delta)
 	location.x += cos(sway_offset.x * lifetime) * m_sway * delta;
 	location.y += cos(sway_offset.y * lifetime) * m_sway * delta;
 	location.z += cos(sway_offset.z * lifetime) * m_sway * delta;
+}
+
+bool Node::IsRoot()
+{
+	return !parent;
 }
 
 void Node::AddChild(Node * child)

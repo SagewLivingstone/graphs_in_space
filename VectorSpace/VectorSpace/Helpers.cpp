@@ -65,6 +65,11 @@ sf::Vector3f ScaleDifference(const sf::Vector3f & point, const sf::Vector3f & or
 	return normalized;
 }
 
+float GetRandom(float low, float high)
+{
+	return low + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/(high - low)));
+}
+
 float GetDistance(sf::Vector2f a, sf::Vector2f b)
 {
 	return abs(sqrt((a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y)));

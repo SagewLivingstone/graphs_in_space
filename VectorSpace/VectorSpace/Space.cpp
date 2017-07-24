@@ -5,6 +5,7 @@ Object for a general volume of space, used for containing objects and rendering
 #include <iostream>
 #include "Space.h"
 #include "Helpers.h"
+#include "UIObject.h"
 
 // Factors to calculate depth effect
 const float DEPTH_SCALE_FACTOR = 0.34f;
@@ -19,9 +20,13 @@ const std::string NODE_IMAGE = "images\\node_item.png";
 
 Space::Space()
 {
+	ui = new UI();
+
 	initTime();
 	loadImages();
 
+	// ========= TESTING VALUES ============
+	
 	Node* god = new Node(12, 0, 0);
 	god->m_color = new sf::Color(255, 0, 0);
 	AddNode(god);
@@ -77,24 +82,66 @@ Space::Space()
 	m_links.push_back(lf);
 }
 
-Space::~Space()
+Space::~Space() // -------- TODO ---------
 {
 }
 
-void Space::Tick() // Main tick function of space : called every update
+void Space::EventTick() // Main tick function of space : called every update
 {
 	UpdateTime();
 	Render();
 	HandleInput();
 	ProcessItems();
+	CheckCollision();
 	if (SHOW_FRAME_COUNTER) UpdateFrameTimer();
+}
+
+void Space::EventLMB()
+{
+	Node* selected = ui->GetHighlight();
+	if (!selected) return;
+	
+	if (selected->IsRoot()) // Only break of if is root
+	{
+		BreakOff(selected);
+	}
+}
+
+void Space::EventRMB()
+{
+}
+
+void Space::EventMouseMoved(float x, float y)
+{
+	ui->SetHighlight(GetNodeByScreenPos(x, y));
+}
+
+void Space::EventCollision(Node * a, Node * b)
+{
+	if (a->lifetime < 2 || b->lifetime < 2) return; // Collision disabled for 2 secs. after spawn
+	if (a->bIsDead || b->bIsDead) return; // Don't handle if a node is already dead
+
+	if (a->IsRoot() && b->IsRoot()) // Both root, split
+	{
+
+	}
+	else if (!a->IsRoot() && !b->IsRoot()) // Both planets, only a survives
+	{
+		a->m_size += b->m_size / 2;
+		a->orbit_speed = M::FClamp(a->orbit_speed + b->orbit_speed, -4, 4);
+
+		RemoveNode(b);
+	}
+	else // One is planet - delete planet
+	{
+	}
 }
 
 void Space::initTime()
 {
 	runtimeClock.restart();
 	deltaClock.restart();
-	printf("Space: Time initialized\n");
+	printf("Time initialized at %f\n", runtimeClock.getElapsedTime().asSeconds());
 }
 
 void Space::loadImages()
@@ -117,12 +164,34 @@ void Space::SetWindow(sf::RenderWindow* new_window)
 	w_width = (float)window_size.x;
 	w_center_height = w_height / 2;
 	w_center_width = w_width / 2;
+
+	// Pass to UI
+	ui->SetWindow(window);
 }
 
 void Space::Zoom(int amount)
 {
 	float new_zoom = amount > 0 ? zoom_factor - ZOOM_SPEED : zoom_factor + ZOOM_SPEED;
 	zoom_factor = M::FClamp(new_zoom, 100, 10000);
+}
+
+Node* Space::GetNodeByScreenPos(int x, int y)
+{
+	// Get screen scale by resolution and zoom factor
+	float res_scale = w_height / 720.f;
+	float zoom_scale = 1000.f / zoom_factor;
+	// Iterate backwards (looking for top node)
+	for (unsigned i = m_nodes.size(); i-- > 0;)
+	{
+		float radius = m_nodes[i]->m_size * t_node_size * zoom_scale * res_scale / (2.f * 100.f); // Radius of node on screen
+		sf::Vector3f loc = m_nodes[i]->view_location;
+		float distance = GetDistance(sf::Vector2f(x, y), sf::Vector2f(loc.x, loc.y));
+		if (distance <= radius)
+		{
+			return m_nodes[i];
+		}
+	}
+	return nullptr;
 }
 
 void Space::UpdateTime()
@@ -137,7 +206,7 @@ void Space::ProcessItems()
 	for (Node* node : m_nodes)
 	{
 		node->Tick(deltatime);
-		if (node->lifetime > 5) SplitNode(node, 500);
+		// if (node->lifetime > 5) SplitNode(node, 500);
 	}
 	for (Link* link : m_links)
 	{
@@ -167,6 +236,24 @@ void Space::HandleInput()
 	}
 }
 
+void Space::CheckCollision()
+{
+	for (Node* node : m_nodes)
+	{
+		for (Node* other : m_nodes)
+		{
+			if (other == node) continue; // Ignore self
+
+			float distance = GetDistance3(node->location, other->location);
+			float size = node->m_size + other->m_size;
+			if (distance <= size * 6.5f)
+			{
+				EventCollision(node, other);
+			}
+		}
+	}
+}
+
 // Render out nodes in the tree
 void Space::Render()
 {
@@ -182,6 +269,10 @@ void Space::Render()
 	{
 		drawLink(*link);
 	}
+	for (UIObject* object : ui->objects) // Render UI objects
+	{
+		DrawUIObject(object);
+	}
 }
 
 void Space::UpdateFrameTimer()
@@ -195,6 +286,27 @@ void Space::UpdateFrameTimer()
 		deltaFrames = 0;
 		lastTime += 1.0;
 	}
+}
+
+void Space::DrawUIObject(UIObject * obj)
+{
+	if (!obj->bVisible) return;
+
+	auto sprite = obj->sprite;
+
+	sf::Vector3f tmp_loc = obj->location;
+	if (obj->bound_node)
+	{
+		tmp_loc += obj->bound_node->view_location; // Remember, UI objects are in screen space
+		if (obj->bBindSize) obj->size = obj->bound_node->m_size;
+	}
+	sprite.setPosition(sf::Vector2f(tmp_loc.x, tmp_loc.y));
+
+	float scale = 1;
+	if (obj->bDoesZoomScale) scale = depthToScaleFactor(tmp_loc.z) * obj->size / 100;
+	sprite.setScale(sf::Vector2f(scale, scale));
+
+	window->draw(sprite);
 }
 
 void Space::drawNode(Node& node)
@@ -287,9 +399,30 @@ void Space::SplitNode(Node * original, float force)
 	AddNode(newnode);
 }
 
+void Space::BreakOff(Node * parent)
+{
+	Node* fragment = new Node();
+	fragment->m_size = GetRandom(0.25f, 0.5f) * parent->m_size;
+	fragment->location = parent->location;
+	fragment->location.x += 100;
+	fragment->orbit_distance = GetRandom(20, 70) * parent->m_size;
+	fragment->orbit_speed = GetRandom(-4.5f, 4.5f);
+
+	AddChild(parent, fragment);
+}
+
 void Space::AddLink(Link * link)
 {
 	m_links.push_back(link);
+}
+
+void Space::RemoveNode(Node * node)
+{
+	if (node->parent)
+		node->parent->children.erase(std::remove(node->parent->children.begin(), node->parent->children.end(), node), node->parent->children.end());
+	m_nodes.erase(std::remove(m_nodes.begin(), m_nodes.end(), node), m_nodes.end());
+	node->bIsDead = true;
+	delete node;
 }
 
 float Space::depthToScaleFactor(const float & depth)
