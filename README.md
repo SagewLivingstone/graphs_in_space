@@ -37,6 +37,7 @@ Other Notes:
 * If window is too small/large, you can change the resolution in Space.h under WindowData. Make sure to rebuild project to ensure changes apply. (Note: SFML does not like windows that are larger than the screen resolution for Windows)
 * Updates are tied to the framerate - if your framerate is not around 60-144 the simulation may be too fast/slow
 * The bulk of Space.cpp handles taking 3D coordinates and converting them to 2D screen space
+* I worked alone on this, the other account with commits is my desktop at home.
 
 Open Issues/Bugs:
 * It is very unlikely for child nodes to create their own children
