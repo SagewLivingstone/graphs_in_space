@@ -18,6 +18,19 @@ const bool SHOW_FRAME_COUNTER = true;
 
 const std::string NODE_IMAGE = "images\\node_item.png";
 
+namespace Colors
+{
+	sf::Color root_colors[] =
+	{
+		sf::Color(255, 50, 50), // Red
+		sf::Color(255, 210, 44), // Yellow
+		sf::Color(255, 90, 0), // Orange
+		sf::Color(220, 255, 0), // Lime Green
+		sf::Color(80, 80, 80) // Black
+	};
+}
+
+
 Space::Space()
 {
 	ui = new UI();
@@ -28,14 +41,14 @@ Space::Space()
 	// ========= TESTING VALUES ============
 	
 	Node* god = new Node(12, 0, 0);
-	god->m_color = new sf::Color(255, 0, 0);
+	god->m_color = new sf::Color(255, 255, 255);
 	AddNode(god);
 
 	if (true) return;
 
 	// For debugging purposes : test node
 	Node* testnode = new Node(12, 0, 0);
-	testnode->m_color = new sf::Color(255, 0, 0);
+	testnode->m_color = new sf::Color(255, 50, 50);
 	AddNode(testnode);
 
 	Node* testchild = new Node(10, 200, 0);
@@ -134,6 +147,7 @@ void Space::EventCollision(Node * a, Node * b)
 	}
 	else // One is planet - delete planet
 	{
+
 	}
 }
 
@@ -152,6 +166,10 @@ void Space::loadImages()
 	t_node.setSmooth(true);
 
 	t_node_size = (float)t_node.getSize().x;
+
+	// Load fonts
+	if (!font_roboto.loadFromFile("fonts\\Roboto-Medium.ttf"))
+		fprintf(stderr, "Could not load hyperspace font");
 }
 
 void Space::SetWindow(sf::RenderWindow* new_window)
@@ -206,7 +224,8 @@ void Space::ProcessItems()
 	for (Node* node : m_nodes)
 	{
 		node->Tick(deltatime);
-		// if (node->lifetime > 5) SplitNode(node, 500);
+		HandleNodeSize(node);
+		HandleTooClose(node);
 	}
 	for (Link* link : m_links)
 	{
@@ -277,14 +296,64 @@ void Space::Render()
 
 void Space::UpdateFrameTimer()
 {
+	sf::Text debugtext;
+	debugtext.setFont(font_roboto);
+	debugtext.setScale(sf::Vector2f(.7, .7));
+
 	double currentTime = runtime;
 	deltaFrames++;
 	if (currentTime - lastTime >= 1.0) { // If last prinf() was more than 1 sec ago
 		float secondsPerFrame = (float)(1000.0 / double(deltaFrames));
 		int framerate = (1 / secondsPerFrame) * 1000;
+		fps_text = std::to_string(secondsPerFrame) + " ms/frame (" + std::to_string(framerate) + " FPS)\n";
 		printf("%f ms/frame (%d FPS)\n", secondsPerFrame, framerate);
 		deltaFrames = 0;
 		lastTime += 1.0;
+	}
+
+	debugtext.setString(fps_text);
+	debugtext.setPosition(sf::Vector2f(w_width - 300, 0));
+	if (ShowFrameCounter) window->draw(debugtext);
+}
+
+void Space::HandleNodeSize(Node * node)
+{
+	if (node->IsRoot()) return;
+	if (node->m_size < node->parent->m_size) return;
+
+	Link* link = new Link(node, node->parent);
+	AddLink(link);
+	node->parent->RemoveChild(node);
+	node->m_size += 1;
+	
+	int picker = (int)GetRandom(0, 4.5); // Last number is extremely rare
+	node->m_color = &Colors::root_colors[picker];
+}
+
+void Space::HandleTooClose(Node * node)
+{
+	if (!node->IsRoot()) return;
+
+	for (Node* i : m_nodes)
+	{
+		if (!i->IsRoot()) continue;
+		if (i == node) return;
+
+		if (GetDistance3(node->location, i->location) < 800)
+		{
+			int currentlinks = 0;
+			for (auto* link : m_links)
+			{
+				if (link->a == node || link->b == node) // Don't make a link if it already exists
+				{
+					if (link->a == i || link->b == i) return;
+					currentlinks++;
+				}
+				if (currentlinks > 2) return;
+			}
+			Link* separator = new Link(node, i);
+			AddLink(separator);
+		}
 	}
 }
 
@@ -409,6 +478,8 @@ void Space::BreakOff(Node * parent)
 	fragment->orbit_speed = GetRandom(-4.5f, 4.5f);
 
 	AddChild(parent, fragment);
+
+	fragment->m_color = parent->m_child_color;
 }
 
 void Space::AddLink(Link * link)

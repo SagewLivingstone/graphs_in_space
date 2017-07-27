@@ -19,6 +19,7 @@ public:
 	// External
 	void SetWindow(sf::RenderWindow* new_window);
 	void Zoom(int amount);
+	bool ShowFrameCounter = true;
 
 	// Getters
 	Node* GetNodeByScreenPos(int x, int y);
@@ -42,6 +43,8 @@ private:
 	void HandleInput();
 	void CheckCollision();
 	void UpdateFrameTimer();
+	void HandleNodeSize(Node* node); // Handle creating new systems
+	void HandleTooClose(Node* node); // Handle two systems too close
 
 	// Time
 	sf::Clock runtimeClock;
@@ -52,6 +55,8 @@ private:
 	// UI
 	UI* ui;
 	void DrawUIObject(UIObject* obj);
+	sf::Font font_roboto;
+	std::string fps_text;
 
 	// Rendering
 	void drawNode(Node&); // Draw an individual node

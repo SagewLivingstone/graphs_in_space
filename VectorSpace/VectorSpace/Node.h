@@ -16,6 +16,7 @@ public:
 	bool IsRoot(); // Is this node the root of a system?
 
 	void AddChild(Node* child);
+	void RemoveChild(Node* child);
 
 	float lifetime = 0;
 	bool bIsDead = false;
@@ -29,6 +30,7 @@ public:
 	float orbit_distance = 200;
 
 	sf::Color* m_color;
+	sf::Color* m_child_color;
 	float m_sway;
 	sf::Vector3f sway_offset;
 	float m_size = 100; // Percent of original image size

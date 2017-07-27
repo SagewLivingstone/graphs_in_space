@@ -40,11 +40,6 @@ int main()
 	s_testimage.setOrigin(sf::Vector2f(50, 50));
 	s_testimage.rotate(20);
 
-	// Load fonts
-	sf::Font hyperspace;
-	if (!hyperspace.loadFromFile("fonts\\hyperspace.otf"))
-		fprintf(stderr, "Could not load hyperspace font");
-
 	// Mainloop while window is open
 	while (window.isOpen())
 	{
@@ -68,6 +63,14 @@ int main()
 					world->EventLMB();
 				if (event.mouseButton.button == sf::Mouse::Right)
 					world->EventRMB();
+			}
+			// Keyboard events
+			if (event.type == sf::Event::KeyPressed)
+			{
+				if (event.key.code == sf::Keyboard::Tilde)
+				{
+					world->ShowFrameCounter = !world->ShowFrameCounter;
+				}
 			}
 		}
 

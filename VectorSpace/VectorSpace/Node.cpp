@@ -12,6 +12,7 @@ Node::Node(float size, float newx, float newy, float newz) : m_size(size)
 {
 	location = sf::Vector3f(newx, newy, newz);
 	m_sway = DEFAULT_SWAY;
+	m_child_color = new sf::Color(GetRandom(0, 255), GetRandom(0, 255), GetRandom(0, 255));
 	sway_offset.x = MIN_SWAY_OFFSET + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (MAX_SWAY_OFFSET - MIN_SWAY_OFFSET)));
 	sway_offset.y = MIN_SWAY_OFFSET + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (MAX_SWAY_OFFSET - MIN_SWAY_OFFSET)));
 	sway_offset.z = MIN_SWAY_OFFSET + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (MAX_SWAY_OFFSET - MIN_SWAY_OFFSET)));
@@ -49,6 +50,12 @@ void Node::AddChild(Node * child)
 {
 	child->parent = this;
 	children.push_back(child);
+}
+
+void Node::RemoveChild(Node * child)
+{
+	child->parent = NULL;
+	children.erase(std::remove(children.begin(), children.end(), child), children.end());
 }
 
 bool CompareNodesByDepth(Node* a, Node* b)
