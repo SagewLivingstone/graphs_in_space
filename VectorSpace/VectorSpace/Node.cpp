@@ -54,8 +54,14 @@ void Node::AddChild(Node * child)
 
 void Node::RemoveChild(Node * child)
 {
+	for (int i = 0; i < children.size(); ++i)
+	{
+		if (children[i] == child)
+		{
+			children.erase(children.begin() + i);
+		}
+	}
 	child->parent = NULL;
-	children.erase(std::remove(children.begin(), children.end(), child), children.end());
 }
 
 bool CompareNodesByDepth(Node* a, Node* b)

@@ -145,7 +145,7 @@ void Space::EventCollision(Node * a, Node * b)
 
 		RemoveNode(b);
 	}
-	else // One is planet - delete planet
+	else // One is planet
 	{
 
 	}
@@ -441,6 +441,7 @@ void Space::AddNode(Node * node)
 
 void Space::AddChild(Node * parent, Node * child)
 {
+	if (!child) return;
 	parent->AddChild(child);
 	m_nodes.push_back(child);
 }
