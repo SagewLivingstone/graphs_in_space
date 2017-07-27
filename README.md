@@ -22,7 +22,9 @@ to the additional include directories of your project, and add /SFML/lib to the 
 for the linker. Also, ensure that sfml-graphics.lib, sfml-window.lib, and sfml-system.lib are
 included in the project. Then build main.cpp and run. 
 
-A precompiled windows binary is provided under /VectorSpace/x64/VectorSpace in case compiling does not work.
+A precompiled windows binary is provided under /VectorSpace/x64/VectorSpace in case compiling does not 
+work. Unfortunately, although SFML is cross-platform, it does not make project setup and compiling
+easy. (It is meant to always distribute final versions as binaries)
 
 **Running**
 
