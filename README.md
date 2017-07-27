@@ -14,6 +14,8 @@ they will form a link and separate (within a certain limit, because nodes have a
 
 **Building**
 
+  First clone the master branch or download as a zip file. The source code is in \VectorSpace\VectorSpace
+
   To build and run a SFML program you must set up a proper project. A Visual Studio project is
 already included in the project files but may need to be tweaked to work correctly (see specifics).
 If using another IDE, you can set up the project as shown in https://www.sfml-dev.org/tutorials/2.4/.
