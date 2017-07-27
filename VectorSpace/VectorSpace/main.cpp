@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <SFML/OpenGL.hpp>
-#include <SFML/Graphics.hpp>
+#include "SFML\OpenGL.hpp"
+#include "SFML\Graphics.hpp"
 
 #include "Space.h"
 #include "Helpers.h"

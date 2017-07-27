@@ -1,6 +1,6 @@
 #pragma once
 
-#include <SFML/Graphics.hpp>
+#include "SFML\Graphics.hpp"
 
 const float ONE_DEG = 0.0174533f;
 

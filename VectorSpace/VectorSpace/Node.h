@@ -1,5 +1,5 @@
 #pragma once
-#include <SFML/Graphics.hpp>
+#include "SFML\Graphics.hpp"
 
 const float DEFAULT_NODE_SIZE = 7;
 
