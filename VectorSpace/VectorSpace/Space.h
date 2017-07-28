@@ -7,7 +7,7 @@ struct WindowData
 {
 	int Width = 1366;
 	int Height = 768;
-	std::string Title = "Change resolution please";
+	std::string Title = "Vector Space";
 };
 
 class Space
@@ -81,6 +81,7 @@ private:
 	void BreakOff(Node* parent);
 	void AddLink(Link* link);
 	void RemoveNode(Node* node);
+	Node* FindConnectedLargest(Node* node); // Find largest node connected to this one
 
 	// Frame counter
 	double lastTime = runtime;

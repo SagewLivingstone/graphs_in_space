@@ -122,6 +122,14 @@ void Space::EventLMB()
 
 void Space::EventRMB()
 {
+	Node* selected = ui->GetHighlight();
+	if (!selected) return;
+
+	if (selected->IsRoot()) // Only if is root
+	{
+		Node* victim = FindConnectedLargest(selected);
+		victim->m_color = new sf::Color(50, 50, 50);
+	}
 }
 
 void Space::EventMouseMoved(float x, float y)
@@ -495,6 +503,50 @@ void Space::RemoveNode(Node * node)
 	m_nodes.erase(std::remove(m_nodes.begin(), m_nodes.end(), node), m_nodes.end());
 	node->bIsDead = true;
 	delete node;
+}
+
+Node * Space::FindConnectedLargest(Node * node)
+{
+	std::vector<Node*> connected;
+	connected.push_back(node);
+
+	int size = 1; // Generate a list of all connected nodes
+	int lastsize = 0;
+	while (size > lastsize)
+	{
+		lastsize = size;
+		for (Link* link : m_links)
+		{
+			std::vector<Node*> last_connected = connected;
+			for (Node* i : last_connected)
+			{
+				if (link->a == i)
+				{
+					if (std::find(connected.begin(), connected.end(), link->b) == connected.end()) { // Only add unique
+						connected.push_back(link->b);
+					}
+				}
+				if (link->b == i)
+				{
+					if (std::find(connected.begin(), connected.end(), link->a) == connected.end()) { // Only add unique
+						connected.push_back(link->a);
+					}
+				}
+			}
+		}
+		size = connected.size();
+	}
+
+	Node* maxsize = node;
+	for (Node* i : connected)
+	{
+		if (i->m_size > maxsize->m_size)
+		{
+			maxsize = i;
+		}
+	}
+
+	return maxsize;
 }
 
 float Space::depthToScaleFactor(const float & depth)
