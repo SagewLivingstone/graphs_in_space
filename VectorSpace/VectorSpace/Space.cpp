@@ -129,6 +129,13 @@ void Space::EventRMB()
 	{
 		Node* victim = FindConnectedLargest(selected);
 		victim->m_color = new sf::Color(50, 50, 50);
+		for (int i = 0; i < m_links.size(); ++i)
+		{
+			if (m_links[i]->a == victim || m_links[i]->b == victim)
+			{
+				m_links.erase(m_links.begin() + i);
+			}
+		}
 	}
 }
 
