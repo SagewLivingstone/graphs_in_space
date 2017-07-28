@@ -33,6 +33,7 @@ easy. (It is meant to always distribute final versions as binaries)
 * Arrow Keys - Camera
 * Scroll Wheel - Zoom In/Out
 * Left Mouse Button - (On root node) Break off a piece of the selected node
+* Right Mouse Button - (On root node) Finds largest node connected to selected node and breaks it off the chain
 * Tilde (~) - Toggle Frame Counter
 
 Other Notes:
@@ -42,6 +43,7 @@ Other Notes:
 * I worked alone on this, the other account with commits is my desktop at home.
 
 Open Issues/Bugs:
+* Break off chain does not always delete all links
 * It is very unlikely for child nodes to create their own children
 * Objects too far away from camera will snap to center of screen and in extreme cases may be too large.
 * Needs mouse movement (instead of arrow keys)
