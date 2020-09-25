@@ -12,6 +12,9 @@ have links (edges) that connect each other together. Each edge has a distance se
 the nodes to be a certain distance away from each other. If two root nodes come too close to each other,
 they will form a link and separate (within a certain limit, because nodes have a maximum number of links).
 
+![screenshot](https://github.com/SagewLivingstone/graphs_in_space/blob/master/screenshot2.png?raw=true)
+![screenshot](https://github.com/SagewLivingstone/graphs_in_space/blob/master/screenshot.png?raw=true)
+
 **Building**
 
   First clone the master branch or download as a zip file. The source code is in \VectorSpace\VectorSpace
